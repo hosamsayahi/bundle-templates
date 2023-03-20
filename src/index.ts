@@ -1,61 +1,77 @@
 import minimist from 'minimist';
-import { red, lightBlue, lightYellow, white } from 'kolorist';
+import { red, lightYellow, white, lightRed, lightBlue } from 'kolorist';
 import path from 'node:path';
 import prompts from 'prompts';
 import fs from 'node:fs';
 
 const cwd = process.cwd();
-const args = minimist<{ template?: string; t?: string }>(
-  process.argv.slice(2),
-  {
-    string: ['_'],
-  }
-);
 
 type ColorType = (color: string | number) => string;
 
 type Option = {
+  id: number;
   name: string;
   displayName: string;
   color: ColorType;
 };
 
-const projectTypes: Option[] = [
+const packageBundlers: Option[] = [
   {
-    name: 'solid',
+    id: 1,
+    name: 'rollup',
+    displayName: 'Rollup',
+    color: lightRed,
+  },
+  {
+    id: 2,
+    name: 'esbuild',
+    displayName: 'Esbuild',
+    color: lightYellow,
+  },
+];
+
+const packageTypes: Option[] = [
+  {
+    id: 1,
+    name: 'javascript',
     displayName: 'Javascript',
     color: lightYellow,
   },
   {
-    name: 'solid-ts',
+    id: 2,
+    name: 'typescript',
     displayName: 'Typescript',
     color: lightBlue,
   },
 ];
 
-const templates = projectTypes.map((option: Option) => {
+const templates = packageBundlers.map((option: Option) => {
   return option.name;
 });
 
-const defaultProjectDir = 'solid-js-app';
+const types = packageTypes.map((option: Option) => {
+  return option.name;
+});
+
+const defaultProjectDir = 'my-package';
 
 async function run() {
-  const argProjectDir = args._[0];
-  const argTemplate = args.template;
+  const argBundler = undefined;
+  const argType = undefined;
 
-  let projectDir = argProjectDir || defaultProjectDir;
+  let projectDir = defaultProjectDir;
   const getProjectName = () =>
     projectDir === '.' ? path.basename(path.resolve()) : projectDir;
 
-  let cli: prompts.Answers<'projectName' | 'projectType'>;
+  let cli: prompts.Answers<'packageName' | 'packageBundler' | 'packageType'>;
 
   try {
     cli = await prompts(
       [
         {
-          type: argProjectDir ? null : 'text',
-          name: 'projectName',
-          message: white('Name Of Project: '),
+          type: 'text',
+          name: 'packageName',
+          message: white('Name Of Package: '),
           initial: defaultProjectDir,
           onState: (state) => {
             projectDir = state.value || defaultProjectDir;
@@ -66,17 +82,34 @@ async function run() {
               : `'${value}' Already Exists, Choose Another`,
         },
         {
-          type:
-            argTemplate && templates.includes(argTemplate) ? null : 'select',
-          name: 'projectType',
+          type: argBundler && templates.includes(argBundler) ? null : 'select',
+          name: 'packageBundler',
           message:
-            typeof argTemplate === 'string' && !templates.includes(argTemplate)
+            typeof argBundler === 'string' && !templates.includes(argBundler)
               ? white(
-                  `The Template Chosen (${argTemplate}) Is Not Valid, Please Choose From The List Below`
+                  `The Bundler Chosen (${argBundler}) Is Not Valid, Please Choose From The List Below`
+                )
+              : white('Select a Bundler'),
+          initial: 0,
+          choices: packageBundlers.map((type) => {
+            const color = type.color;
+            return {
+              title: color(type.displayName || type.name),
+              value: type,
+            };
+          }),
+        },
+        {
+          type: argType && types.includes(argType) ? null : 'select',
+          name: 'packageType',
+          message:
+            typeof argType === 'string' && !types.includes(argType)
+              ? white(
+                  `The Type Chosen (${argType}) Is Not Valid, Please Choose From The List Below`
                 )
               : white('Select a Type'),
           initial: 0,
-          choices: projectTypes.map((type) => {
+          choices: packageTypes.map((type) => {
             const color = type.color;
             return {
               title: color(type.displayName || type.name),
@@ -96,10 +129,11 @@ async function run() {
     return;
   }
 
-  const { projectType } = cli;
-
+  const { packageBundler, packageType } = cli;
+  
   const root = path.join(cwd, projectDir);
-  const template = projectType ? projectType.name : argTemplate;
+  const template = packageBundler ? packageBundler.name : argBundler;
+  const type = packageType ? packageType.name : argType;
   const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
   const pkgManager = pkgInfo ? pkgInfo.name : 'npm';
 
@@ -107,7 +141,7 @@ async function run() {
 
   console.log(`\nCreating New Project In ${root}`);
 
-  const localTemplateDir = path.join(cwd, `${template}-template`);
+  const localTemplateDir = path.join(cwd, 'templates', `${template}-${type}`);
 
   const write = (file: string, content?: string) => {
     const targetPath = path.join(root, file);
@@ -133,7 +167,7 @@ async function run() {
       write(file);
     });
 
-  console.log(`\nProject Created`);
+  console.log(`\Package Starter Bundle Initialized`);
   console.log(`\nRun The Commands Below To Start, Happy Coding !!\n`);
   if (root !== cwd) {
     console.log(`  cd ${path.relative(cwd, root)}`);
