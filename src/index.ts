@@ -130,50 +130,50 @@ async function run() {
   }
 
   const { packageBundler, packageType } = cli;
-  console.log(packageBundler, packageType);
   
-  // const root = path.join(cwd, projectDir);
-  // const template = packageBundler ? packageBundler.name : argBundler;
-  // const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
-  // const pkgManager = pkgInfo ? pkgInfo.name : 'npm';
+  const root = path.join(cwd, projectDir);
+  const template = packageBundler ? packageBundler.name : argBundler;
+  const type = packageType ? packageType.name : argType;
+  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
+  const pkgManager = pkgInfo ? pkgInfo.name : 'npm';
 
-  // fs.mkdirSync(root, { recursive: true });
+  fs.mkdirSync(root, { recursive: true });
 
-  // console.log(`\nCreating New Project In ${root}`);
+  console.log(`\nCreating New Project In ${root}`);
 
-  // const localTemplateDir = path.join(cwd, 'templates', template);
+  const localTemplateDir = path.join(cwd, 'templates', `${template}-${type}`);
 
-  // const write = (file: string, content?: string) => {
-  //   const targetPath = path.join(root, file);
-  //   if (content) {
-  //     fs.writeFileSync(targetPath, content);
-  //   } else {
-  //     copy(path.join(localTemplateDir, file), targetPath);
-  //   }
-  // };
+  const write = (file: string, content?: string) => {
+    const targetPath = path.join(root, file);
+    if (content) {
+      fs.writeFileSync(targetPath, content);
+    } else {
+      copy(path.join(localTemplateDir, file), targetPath);
+    }
+  };
 
-  // const pkg = JSON.parse(
-  //   fs.readFileSync(path.join(localTemplateDir, `package.json`), 'utf-8')
-  // );
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(localTemplateDir, `package.json`), 'utf-8')
+  );
 
-  // pkg.name == getProjectName();
+  pkg.name == getProjectName();
 
-  // write('package.json', JSON.stringify(pkg, null, 2));
+  write('package.json', JSON.stringify(pkg, null, 2));
 
-  // const files = fs.readdirSync(localTemplateDir);
-  // files
-  //   .filter((f) => f !== 'package.json')
-  //   .forEach((file) => {
-  //     write(file);
-  //   });
+  const files = fs.readdirSync(localTemplateDir);
+  files
+    .filter((f) => f !== 'package.json')
+    .forEach((file) => {
+      write(file);
+    });
 
-  // console.log(`\nProject Created`);
-  // console.log(`\nRun The Commands Below To Start, Happy Coding !!\n`);
-  // if (root !== cwd) {
-  //   console.log(`  cd ${path.relative(cwd, root)}`);
-  // }
-  // console.log(`  ${pkgManager} install`);
-  // console.log(`  ${pkgManager} run dev`);
+  console.log(`\Package Starter Bundle Initialized`);
+  console.log(`\nRun The Commands Below To Start, Happy Coding !!\n`);
+  if (root !== cwd) {
+    console.log(`  cd ${path.relative(cwd, root)}`);
+  }
+  console.log(`  ${pkgManager} install`);
+  console.log(`  ${pkgManager} run dev`);
 }
 
 try {
