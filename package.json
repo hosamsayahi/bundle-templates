@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsup",
+    "dev": "node dist/index.js",
     "build": "tsup",
-    "test": "vitest"
+    "test": "vitest",
+    "start": "pnpm build && pnpm dev"
   },
   "keywords": [],
   "author": "",
