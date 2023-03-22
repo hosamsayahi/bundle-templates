@@ -8,7 +8,7 @@ esbuildServe(
     minify: true,
     sourcemap: true,
     target: 'node14',
-    outfile: './dist/index.js',
+    outdir: 'dist',
   },
   {
     port: 3000,
