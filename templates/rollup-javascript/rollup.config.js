@@ -1,26 +1,31 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import dts from 'rollup-plugin-dts';
-import pkg from './package.json';
-import sucrase from '@rollup/plugin-sucrase';
+import json from '@rollup/plugin-json';
+import { readFile } from 'fs/promises';
+
+const pkg = JSON.parse(await readFile(new URL('./package.json', import.meta.url)));
+
+const external = [
+  ...Object.keys(pkg.dependencies || []),
+  ...Object.keys(pkg.peerDependencies || []),
+];
 
 export default [
   {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.main,
-      format: 'esm',
-      sourcemap: true,
-    },
-    plugins: [
-      resolve(),
-      commonjs(),
-      sucrase({ exclude: ['node_modules/**'], transforms: ['typescript'] }),
+    input: './src/index.js',
+    output: [
+      {
+        file: './dist/esm/index.js',
+        format: 'esm',
+        sourcemap: true,
+      },
+      {
+        file: './dist/cjs/index.js',
+        format: 'cjs',
+        sourcemap: true,
+      },
     ],
-  },
-  {
-    input: 'dist/types/index.d.ts',
-    output: [{ file: 'dist/index.d.ts', format: 'esm' }],
-    plugins: [dts()],
+    external,
+    plugins: [resolve(), json(), commonjs()],
   },
 ];

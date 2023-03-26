@@ -1,1 +1,1 @@
-export * from './people';
+console.log("hi");

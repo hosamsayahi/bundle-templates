@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "declaration": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "declarationDir": "dist/types",
-    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "emitDeclarationOnly": true
-  }
+    "sourceMap": true,
+    "strict": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist/types",
+    "moduleResolution": "node"
+  },
+  "include": ["./src/**/*"],
 }
