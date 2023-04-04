@@ -2,7 +2,14 @@ import { red, white } from 'kolorist';
 import path from 'node:path';
 import prompts from 'prompts';
 import fs from 'node:fs';
-import { packageBundlers, packageFeatures as features, packageTypes, templates, types } from './options';
+import {
+  packageBundlers,
+  packageFeatures as features,
+  packageTypes,
+  templates,
+  types,
+  Option,
+} from './options';
 
 const cwd = process.cwd();
 
@@ -23,7 +30,13 @@ async function run() {
     packageDir === '.' ? path.basename(path.resolve()) : packageDir;
 
   let cli: prompts.Answers<
-    'packageName' | 'packageDescription' | 'packageAuthor' | 'packageRepo' | 'packageBundler' | 'packageType' | 'packageFeatures'
+    | 'packageName'
+    | 'packageDescription'
+    | 'packageAuthor'
+    | 'packageRepo'
+    | 'packageBundler'
+    | 'packageType'
+    | 'packageFeatures'
   >;
 
   try {
@@ -109,8 +122,9 @@ async function run() {
           type: 'multiselect',
           name: 'packageFeatures',
           instructions: false,
-          message:
-             white('Select a The Features You Want To Use (Use Space To Select): '),
+          message: white(
+            'Select a The Features You Want To Use (Use Space To Select): '
+          ),
           initial: 0,
           choices: features.map((feature) => {
             const color = feature.color;
@@ -133,7 +147,11 @@ async function run() {
   }
 
   const { packageBundler, packageType, packageFeatures } = cli;
-  
+
+  const featuresArr = packageFeatures.map((feature: Option) => {
+    return feature.name;
+  });
+
   const root = path.join(cwd, packageDir);
   const template = packageBundler ? packageBundler.name : argBundler;
   const type = packageType ? packageType.name : argType;
@@ -159,13 +177,25 @@ async function run() {
     fs.readFileSync(path.join(localTemplateDir, `package.json`), 'utf-8')
   );
 
+  let pkgDevDeps = pkg.devDependencies;
+  if (featuresArr.includes('unit-testing')) {
+    const vitestConfig = fs.readFileSync(
+      path.join(cwd, 'tools', 'vitest.config.ts'),
+      'utf-8'
+    );
+    pkgDevDeps['@vitest/ui'] = '0.29.8';
+    pkgDevDeps.vitest = '0.29.8';
+    pkg.scripts.test = 'vitest';
+    pkg.scripts['test:ui'] = 'vitest --ui';
+    write('vitest.config.ts', vitestConfig);
+  }
+
   pkg.name == getProjectName();
   pkg.description = packageDescription;
   pkg.author = packageAuthor;
   pkg.repository = packageRepo;
-  pkg.scripts.test = 'slfmldamf'
   pkg.peerDependencies = pkg.peerDependencies;
-  pkg.devDependencies = pkg.devDependencies;
+  pkg.devDependencies = pkgDevDeps;
   pkg.dependencies = pkg.dependencies;
 
   write('package.json', JSON.stringify(pkg, null, 2));
