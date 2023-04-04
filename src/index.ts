@@ -2,6 +2,7 @@ import { red, white } from 'kolorist';
 import path from 'node:path';
 import prompts from 'prompts';
 import fs from 'node:fs';
+import { copy, isEmpty, pkgFromUserAgent } from './utils/functions';
 import {
   packageBundlers,
   packageFeatures as features,
@@ -148,15 +149,14 @@ async function run() {
 
   const { packageBundler, packageType, packageFeatures } = cli;
 
-  const featuresArr = packageFeatures.map((feature: Option) => {
-    return feature.name;
-  });
-
   const root = path.join(cwd, packageDir);
   const template = packageBundler ? packageBundler.name : argBundler;
   const type = packageType ? packageType.name : argType;
   const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
   const pkgManager = pkgInfo ? pkgInfo.name : 'npm';
+  const featuresArr = packageFeatures.map((feature: Option) => {
+    return feature.name;
+  });
 
   fs.mkdirSync(root, { recursive: true });
 
@@ -220,37 +220,4 @@ try {
   run();
 } catch (error) {
   console.log(red('Error Occurred'));
-}
-
-function copyDir(srcDir: string, destDir: string) {
-  fs.mkdirSync(destDir, { recursive: true });
-  for (const file of fs.readdirSync(srcDir)) {
-    const srcFile = path.resolve(srcDir, file);
-    const destFile = path.resolve(destDir, file);
-    copy(srcFile, destFile);
-  }
-}
-
-function copy(src: string, dest: string) {
-  const stat = fs.statSync(src);
-  if (stat.isDirectory()) {
-    copyDir(src, dest);
-  } else {
-    fs.copyFileSync(src, dest);
-  }
-}
-
-function pkgFromUserAgent(userAgent: string | undefined) {
-  if (!userAgent) return undefined;
-  const pkgSpec = userAgent.split(' ')[0];
-  const pkgSpecArr = pkgSpec.split('/');
-  return {
-    name: pkgSpecArr[0],
-    version: pkgSpecArr[1],
-  };
-}
-
-export function isEmpty(path: string) {
-  const files = fs.readdirSync(path);
-  return files.length === 0;
 }
